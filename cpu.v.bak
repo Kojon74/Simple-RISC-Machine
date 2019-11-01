@@ -98,6 +98,7 @@ module CPUstateMachine(reset, opcode, op, vsel, loadb, loada, asel, write, clk, 
       if (reset) {nextstate, write, loada, loadb, loadc, loads, asel, vsel, only_shift, nsel, load_pc, reset_pc, load_addr, addr_sel, mem_cmd, load_ir} <= {`S0, 18'b000000000001101000};
       else begin
         casex ({state, opcode, op})
+	  
 	  //Goes to reset state if reset is pressed
 	  {`S0, 5'bxxxxx} : {nextstate, write, loada, loadb, loadc, loads, asel, vsel, only_shift, nsel, load_pc, reset_pc, load_addr, addr_sel, mem_cmd, load_ir} <= {`S1, 16'b0000000000000001,`MREAD, 1'b0};
 	  //Goes to IF1 state
@@ -168,13 +169,6 @@ module CPUstateMachine(reset, opcode, op, vsel, loadb, loada, asel, write, clk, 
 	  //Load into memory
 	  {`S9, 5'b100xx} : {nextstate, write, loada, loadb, loadc, loads, asel, vsel, only_shift, nsel, load_pc, reset_pc, load_addr, addr_sel, mem_cmd, load_ir} <= {`S1, 16'b0000000000000001,`MREAD, 1'b0};
 	  
-	  //Direct call
-	  //Decode state
-	  {`S4, 5'b01011} : {nextstate, write, loada, loadb, loadc, loads, asel, vsel, only_shift, nsel, load_pc, reset_pc} <= {`S1, 13'b000000100010}; //Not sure if load_pc and reset_pc should be set in this state or next
-	  //{`S7, 5'b01011} : {nextstate, write, loada, loadb, loadc, loads, asel, vsel, only_shift, nsel, load_pc, reset_pc, load_addr, addr_sel, mem_cmd, load_ir} <=
-
-	  //Return
-
 	  default {nextstate, write, loada, loadb, loadc, loads, asel, vsel, only_shift, nsel, load_pc, reset_pc, load_addr, addr_sel, mem_cmd, load_ir} <= {23{1'bx}};
 	  endcase
       end // else: !if(reset)
