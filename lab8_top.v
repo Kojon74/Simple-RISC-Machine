@@ -1,0 +1,73 @@
+`define MREAD 2'b01 //MREAD
+`define MWRITE 2'b10 //MWRITE
+
+module lab7_top(KEY, SW, LEDR, HEX0, HEX1, HEX2, HEX3, HEX4, HEX5);
+   parameter filename = "part3_test.txt";
+   input [3:0] KEY;
+   input [9:0] SW;
+   output [9:0] LEDR;
+   output [6:0] HEX0, HEX1, HEX2, HEX3, HEX4, HEX5;
+   wire [8:0] 	mem_addr;
+   wire [15:0] 	read_data, write_data;
+   wire [1:0] 	mem_cmd;
+   wire 	msel, write;
+   wire [15:0] 	dout;
+   wire 	LEDload, switch_load;
+
+   assign LEDR[9:8] = 2'b00;
+   
+   //Instantiating memory
+   RAM #(16, 8, filename) MEM (.clk(~KEY[0]), .read_address(mem_addr[7:0]), .write_address(mem_addr[7:0]), .write(write), .din(write_data), .dout(dout));
+
+   //Instantiating the cpu
+   cpu CPU (.clk(~KEY[0]), .reset(~KEY[1]), .in(read_data), .out(write_data), .N(), .V(), .Z(), .mem_addr(mem_addr), .mem_cmd(mem_cmd));
+   
+   //Tri state buffer for output
+   assign read_data = (msel & `MREAD === mem_cmd) ? dout : {16{1'bz}};
+   
+   //msel
+   assign msel = mem_addr[8:8] === 1'b0;
+
+   //write
+   assign write = msel & (`MWRITE === mem_cmd);
+
+   //Register that controls when the LEDs are updated
+   register #(8) LEDs (.data_in(write_data[7:0]), .load(LEDload), .clk(~KEY[0]), .data_out(LEDR[7:0]));
+
+   assign LEDload = (mem_addr === 9'h100)&(mem_cmd === `MWRITE);
+   
+   //Tristate buffers controlling switch inputs
+   assign read_data[15:8] = switch_load ? 8'h00 : {8{1'bz}};
+   assign read_data[7:0] = switch_load ? SW : {8{1'bz}};
+
+   assign switch_load = (mem_cmd === `MREAD) & (mem_addr === 9'h140);
+   
+endmodule // lab7_top
+
+module sseg(in,segs);
+   input [3:0] in;
+   output reg [6:0] segs;
+
+   //Displays the hexdecimal version of out on the DE1-SOC
+   always @(*)begin
+      case(in)
+	4'b0000 : segs <= 7'b1000000;
+	4'b0001 : segs <= 7'b1111001;
+	4'b0010 : segs <= 7'b0100100;
+	4'b0011 : segs <= 7'b0110000;
+	4'b0100 : segs <= 7'b0011001;
+	4'b0101 : segs <= 7'b0010010;
+	4'b0110 : segs <= 7'b0000010;
+	4'b0111 : segs <= 7'b1111000;
+	4'b1000 : segs <= 7'b0000000;
+	4'b1001 : segs <= 7'b0011000;
+	4'b1010 : segs <= 7'b0001000;
+	4'b1011 : segs <= 7'b1000011;
+	4'b1100 : segs <= 7'b1000110;
+	4'b1101 : segs <= 7'b0100001;
+	4'b1110 : segs <= 7'b0000110;
+	4'b1111 : segs <= 7'b0001110;
+	default : segs <= {7{1'bx}};
+      endcase // case (in)
+   end 
+endmodule
