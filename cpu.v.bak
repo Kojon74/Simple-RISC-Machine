@@ -52,12 +52,21 @@ module cpu(clk, reset, in, out, mem_addr, mem_cmd);
     .load_addr(load_addr), .addr_sel(addr_sel), .mem_cmd(mem_cmd), .load_ir(load_ir), .bsel(bsel), .N(N), .V(V), .Z(Z), .con(con));
 
    //Multiplexers that determine next_pc and mem_addr
+<<<<<<< HEAD
+   always @(*)
+    case (reset_pc)
+	2'b00: next_pc = {9{1'b0}};
+	2'b01: next_pc = out;
+	2'b10: next_pc = PC + 1 + sximm8;
+	2'b11: next_pc = PC + 1;
+=======
    always@(*)
     case (reset_pc)
 	 2'b00: next_pc = {9{1'b0}};
 	 2'b01: next_pc = out;
 	 2'b10: next_pc = PC + 1 + sximm8;
 	 2'b11: next_pc = PC + 1;
+>>>>>>> 004d54797633231482741684688c510aa81699db
     endcase
    assign mem_addr = addr_sel ? PC : data_address;
    
