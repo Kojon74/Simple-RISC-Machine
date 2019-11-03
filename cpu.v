@@ -13,12 +13,13 @@
 `define MREAD 2'b01 //MREAD
 `define MWRITE 2'b10 //MWRITE
 
-module cpu(clk, reset, in, out, mem_addr, mem_cmd);
+module cpu(clk, reset, in, out, mem_addr, mem_cmd, halt);
    input clk, reset;
    input [15:0] in;
    output [15:0] out;
    output [8:0] mem_addr;
    output [1:0] mem_cmd;
+   output halt;
    wire [15:0] instruction, read_data, sximm5, sximm8;
    wire [8:0] PC, data_address;
    wire [2:0] opcode, register, nsel, con;
@@ -27,6 +28,7 @@ module cpu(clk, reset, in, out, mem_addr, mem_cmd);
    reg [1:0] next_pc;
 
    assign read_data = in;
+   assign halt = opcode === 3'b111;
    
    //Creating datapath
    datapath DP (.clk(clk), .readnum(register), .vsel(vsel), .loada(loada), .loadb(loadb), .shift(shift), .asel(asel), 

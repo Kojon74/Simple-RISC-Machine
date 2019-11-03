@@ -8,19 +8,17 @@ module lab8_top(KEY, SW, LEDR, HEX0, HEX1, HEX2, HEX3, HEX4, HEX5);
    output [9:0] LEDR;
    output [6:0] HEX0, HEX1, HEX2, HEX3, HEX4, HEX5;
    wire [8:0] 	mem_addr;
-   wire [15:0] 	read_data, write_data;
+   wire [15:0] 	read_data, write_data, dout, ir;
    wire [1:0] 	mem_cmd;
-   wire 	msel, write;
-   wire [15:0] 	dout;
-   wire 	LEDload, switch_load;
+   wire 	msel, write, halt, LEDload, switch_load;
 
-   assign LEDR[9:8] = 2'b00;
+   assign LEDR[9:8] = (halt === 1'b1) ? 2'b01 : 2'b00;
    
    //Instantiating memory
    RAM #(16, 8, filename) MEM (.clk(~KEY[0]), .read_address(mem_addr[7:0]), .write_address(mem_addr[7:0]), .write(write), .din(write_data), .dout(dout));
 
    //Instantiating the cpu
-   cpu CPU (.clk(~KEY[0]), .reset(~KEY[1]), .in(read_data), .out(write_data), .N(), .V(), .Z(), .mem_addr(mem_addr), .mem_cmd(mem_cmd));
+   cpu CPU (.clk(~KEY[0]), .reset(~KEY[1]), .in(read_data), .out(write_data), .mem_addr(mem_addr), .mem_cmd(mem_cmd), .halt(halt));
   
    //Instantiating the input_iface 
    input_iface IN(CLOCK_50, SW, ir, LEDR[7:0]);
@@ -45,7 +43,7 @@ module lab8_top(KEY, SW, LEDR, HEX0, HEX1, HEX2, HEX3, HEX4, HEX5);
 
    assign switch_load = (mem_cmd === `MREAD) & (mem_addr === 9'h140);
    
-endmodule // lab7_top
+endmodule // lab8_top
 
 module sseg(in,segs);
    input [3:0] in;
@@ -85,3 +83,14 @@ module input_iface(clk, SW, ir, LEDR);
   vDFF #(16) REG(clk,ir_next,ir);
   assign LEDR = sel_sw ? ir[7:0] : ir[15:8];  
 endmodule  
+
+module vDFF(clk,D,Q);
+  parameter n=1;
+  input clk;
+  input [n-1:0] D;
+  output [n-1:0] Q;
+  reg [n-1:0] Q;
+  always @(posedge clk)
+    Q <= D;
+endmodule
+
