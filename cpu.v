@@ -24,7 +24,7 @@ module cpu(clk, reset, in, out, mem_addr, mem_cmd);
    wire [2:0] opcode, register, nsel, con;
    wire [1:0] op, ALUop, shift, vsel, reset_pc;
    wire loadb, loada, asel, bsel, write, loads, loadc, only_shift, N, V, Z, load_pc, addr_sel, load_addr, load_ir;
-   reg [1:0] next_pc;
+   reg [8:0] next_pc;
 
    assign read_data = in;
    
