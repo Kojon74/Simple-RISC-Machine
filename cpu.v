@@ -102,29 +102,29 @@ module CPUstateMachine(reset, opcode, op, vsel, loadb, loada, asel, write, clk, 
 
    //Always block that controls the statemachine
    always @(posedge clk) begin
-      if (reset) {nextstate, write, loada, loadb, loadc, loads, asel, vsel, only_shift, nsel, load_pc, reset_pc, load_addr, addr_sel, mem_cmd, load_ir} <= {`S0, 19'b0000_0000_0001_11010_00};
+      if (reset) {nextstate, write, loada, loadb, loadc, loads, asel, vsel, only_shift, nsel, load_pc, reset_pc, load_addr, addr_sel, mem_cmd, load_ir} <= {`S0, 20'b0000_0000_0001_11010_000};
       else begin
         casex ({state, opcode, op, con})
 	  //BLT
-	  {{4{1'bx}}, 8'b00100011} : begin load_pc <= 1'b1;
+	  {`S4, 8'b00100011} : begin load_pc <= 1'b1; nextstate = `S1;
 				   if (N != V) begin reset_pc <= 2'b10; end
 				   else begin reset_pc <= 2'b11; end
 			 	   end
 	  //B
-	  {{4{1'bx}}, 8'b00100000} : begin reset_pc <= 2'b10; load_pc <= 1'b1; end
+	  {`S4, 8'b00100000} : begin reset_pc <= 2'b10; load_pc <= 1'b1; nextstate = `S1; end
 
 	  //BEQ
-	  {{4{1'bx}}, 8'b00100001} : begin load_pc <= 1'b1;
+	  {`S4, 8'b00100001} : begin load_pc <= 1'b1; nextstate = `S1;
 				   if (Z == 1) begin reset_pc <= 2'b10; end
 				   else begin reset_pc <= 2'b11; end
 				   end
 	  //BNE
-	  {{4{1'bx}}, 8'b00100010} : begin load_pc <= 1'b1;
+	  {`S4, 8'b00100010} : begin load_pc <= 1'b1; nextstate = `S1;
 				   if (Z == 0) begin reset_pc <= 2'b10; end
 				   else begin reset_pc <= 2'b11; end
 				   end
 	  //BLE
-	  {{4{1'bx}}, 8'b00100100} : begin load_pc <= 1'b1;
+	  {`S4, 8'b00100100} : begin load_pc <= 1'b1; nextstate = `S1;
 				   if (N != V | Z == 1) begin reset_pc <= 2'b10; end
 				   else begin reset_pc <= 2'b11; end
 				   end

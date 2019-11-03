@@ -13,7 +13,7 @@ module lab8_top(KEY, SW, LEDR, HEX0, HEX1, HEX2, HEX3, HEX4, HEX5, CLOCK_50);
    wire [1:0] 	mem_cmd;
    wire 	msel, write, halt, LEDload, switch_load;
 
-   assign LEDR[9:8] = (halt === 1'b1) ? 2'b01 : 2'b00;
+   assign LEDR[8:8] = halt;
    
    //Instantiating memory
    RAM #(16, 8, filename) MEM (.clk(CLOCK_50), .read_address(mem_addr[7:0]), .write_address(mem_addr[7:0]), .write(write), .din(write_data), .dout(dout));
