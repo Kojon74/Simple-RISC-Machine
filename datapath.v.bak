@@ -8,7 +8,7 @@ module datapath (clk, readnum, vsel, loada, loadb, shift, asel, bsel, ALUop, loa
    input [15:0] sximm5, sximm8;
    output [15:0] datapath_out;
    output N, V, Z;
-   input [15:0] mdata;
+   input [15:0] 	 mdata;
    input [7:0] 	 PC;
    wire [2:0] Z_out;
 

@@ -56,10 +56,10 @@ module cpu(clk, reset, in, out, mem_addr, mem_cmd, halt);
    //Multiplexers that determine next_pc and mem_addr
    always@(*)
     case (reset_pc)
-	 2'b00: next_pc = {9{1'b0}};
+	 2'b11: next_pc = {9{1'b0}};
 	 2'b01: next_pc = out;
 	 2'b10: next_pc = PC + 1 + sximm8;
-	 2'b11: next_pc = PC + 1;
+	 2'b00: next_pc = PC + 1;
     endcase
    assign mem_addr = addr_sel ? PC : data_address;
    
@@ -102,35 +102,39 @@ module CPUstateMachine(reset, opcode, op, vsel, loadb, loada, asel, write, clk, 
 
    //Always block that controls the statemachine
    always @(posedge clk) begin
-      if (reset) {nextstate, write, loada, loadb, loadc, loads, asel, vsel, only_shift, nsel, load_pc, reset_pc, load_addr, addr_sel, mem_cmd, load_ir} <= {`S0, 20'b0000_0000_0001_1101_0000};
+      if (reset) {nextstate, write, loada, loadb, loadc, loads, asel, vsel, only_shift, nsel, load_pc, reset_pc, load_addr, addr_sel, mem_cmd, load_ir} <= {`S0, 20'b0000_0000_0001_11110_000};
       else begin
         casex ({state, opcode, op, con})
 	  //BLT
-	  {`S4, 8'b00100011} :  load_pc <= 1'b1;
+	  {`S4, 8'b00100011} : begin nextstate = `S1;
 				   if (N != V) begin reset_pc <= 2'b10; end
 				   else begin reset_pc <= 2'b11; end
-			       
-				nextstate = `S1;
-				
+			 	   end
 	  //B
-	  {`S4}, 8'b00100000} : reset_pc <= 2'b10; nextstate = `S1;
+	  {`S4, 8'b00100000} : begin reset_pc <= 2'b10; load_pc <= 1'b1; nextstate = `S1; end
 
 	  //BEQ
-	  {`S4}, 8'b00100001} : if (Z == 1) begin reset_pc <= 2'b10; end
-				   else begin reset_pc <= 2'b11; end nextstate = `S1;
+	  {`S4, 8'b00100001} : begin load_pc <= 1'b1; nextstate = `S1;
+				   if (Z == 1) begin reset_pc <= 2'b10; end
+				   else begin reset_pc <= 2'b11; end
+				   end
 	  //BNE
-	  {`S4}, 8'b00100010} : if (Z == 0) begin reset_pc <= 2'b10; end
-				   else begin reset_pc <= 2'b11; end nextstate = `S1;
+	  {`S4, 8'b00100010} : begin load_pc <= 1'b1; nextstate = `S1;
+				   if (Z == 0) begin reset_pc <= 2'b10; end
+				   else begin reset_pc <= 2'b11; end
+				   end
 	  //BLE
-	  {`S4}, 8'b00100100} : if (N != V | Z == 1) begin reset_pc <= 2'b10; end
-				   else begin reset_pc <= 2'b11; end nextstate = `S1;
+	  {`S4, 8'b00100100} : begin load_pc <= 1'b1; nextstate = `S1;
+				   if (N != V | Z == 1) begin reset_pc <= 2'b10; end
+				   else begin reset_pc <= 2'b11; end
+				   end
 
 	  //Goes to reset state if reset is pressed
-	  {`S0, 8'bxxxxxxxx} : {nextstate, write, loada, loadb, loadc, loads, asel, vsel, only_shift, nsel, load_pc, reset_pc, load_addr, addr_sel, mem_cmd, load_ir} <= {`S1, 17'b0000000000000_0001,`MREAD, 1'b0};
+	  {`S0, 8'bxxxxxxxx} : {nextstate, write, loada, loadb, loadc, loads, asel, vsel, only_shift, nsel, load_pc, /*reset_pc*/, load_addr, addr_sel, mem_cmd, load_ir} <= {`S1, 17'b0000000000000_01,`MREAD, 1'b0};
 	  //Goes to IF1 state
-	  {`S1, 8'bxxxxxxxx} : {nextstate, write, loada, loadb, loadc, loads, asel, vsel, only_shift, nsel, load_pc, reset_pc, load_addr, addr_sel, mem_cmd, load_ir} <= {`S2, 17'b0000000000000_0001, `MREAD, 1'b1};
+	  {`S1, 8'bxxxxxxxx} : {nextstate, write, loada, loadb, loadc, loads, asel, vsel, only_shift, nsel, load_pc, /*reset_pc*/, load_addr, addr_sel, mem_cmd, load_ir} <= {`S2, 17'b0000000000000_01, `MREAD, 1'b1};
 	  //Goes to IF2 state
-	  {`S2, 8'bxxxxxxxx} : {nextstate, write, loada, loadb, loadc, loads, asel, vsel, only_shift, nsel, load_pc, reset_pc, load_addr, addr_sel, mem_cmd, load_ir} <= {`S3, 20'b0000000000001_0001000};
+	  {`S2, 8'bxxxxxxxx} : {nextstate, write, loada, loadb, loadc, loads, asel, vsel, only_shift, nsel, load_pc, /*reset_pc*/, load_addr, addr_sel, mem_cmd, load_ir} <= {`S3, 20'b0000000000001_01000};
 	  //Goes to UpdatePC state
 	  {`S3, 8'bxxxxxxxx} : {nextstate, write, loada, loadb, loadc, loads, asel, vsel, only_shift, nsel, load_pc, reset_pc, load_addr, addr_sel, mem_cmd, load_ir} <= {`S4, 20'b0000000000000_0001000};
 	  //Goes to decoded state
@@ -197,12 +201,12 @@ module CPUstateMachine(reset, opcode, op, vsel, loadb, loada, asel, write, clk, 
 	  
 
 	  //BL
-	  {`S4, 8'b01011xxx} : {nextstate, write, vsel, nsel, reset_pc} <= {`S1, 8'b11000110};
+	  {`S4, 8'b01011xxx} : {nextstate, write, vsel, nsel, reset_pc, load_pc} <= {`S1, 8'b11000111};
 
 	  //BX
 	  {`S4, 8'b0100xxxx} : {nextstate, write, loada, loadb, loadc, loads, asel, vsel, only_shift, nsel, bsel} <= {`S5, 13'b0010000000100};
 	  {`S5, 8'b0100xxxx} : {nextstate, write, loada, loadb, loadc, loads, asel, vsel, only_shift, nsel, bsel} <= {`S6, 13'b0001110000000};
-	  {`S6, 8'b0100xxxx} : {nextstate, reset_pc} <= {`S1, 2'b01};
+	  {`S6, 8'b0100xxxx} : {nextstate, reset_pc, load_pc} <= {`S1, 3'b011};
 	  
 	  //Return
 	  default : {nextstate, write, loada, loadb, loadc, loads, asel, vsel, only_shift, nsel, load_pc, reset_pc, load_addr, addr_sel, mem_cmd, load_ir} <= {24{1'bx}};
