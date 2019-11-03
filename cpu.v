@@ -102,24 +102,30 @@ module CPUstateMachine(reset, opcode, op, vsel, loadb, loada, asel, write, clk, 
 
    //Always block that controls the statemachine
    always @(posedge clk) begin
-      if (reset) {nextstate, write, loada, loadb, loadc, loads, asel, vsel, only_shift, nsel, load_pc, reset_pc, load_addr, addr_sel, mem_cmd, load_ir} <= {`S0, 19'b0000_0000_0001_11010_00};
+      if (reset) {nextstate, write, loada, loadb, loadc, loads, asel, vsel, only_shift, nsel, load_pc, reset_pc, load_addr, addr_sel, mem_cmd, load_ir} <= {`S0, 20'b0000_0000_0001_1101_0000};
       else begin
         casex ({state, opcode, op, con})
 	  //BLT
-	  {{4{1'bx}}, 8'b00100011} : if (N != V) begin reset_pc <= 2'b10; end
-				   else begin reset_pc <= 2'b11; end
+	  {`S4, 8'b00100011} : load_pc <= 1'b1;
+				if (N != V) begin reset_pc <= 2'b10; end
+				else begin reset_pc <= 2'b11; end
+			        nextstate = `S1;
+				
 	  //B
-	  {{4{1'bx}}, 8'b00100000} : reset_pc <= 2'b10;
+	  {`S4}, 8'b00100000} : reset_pc <= 2'b10; nextstate = `S1;
 
 	  //BEQ
-	  {{4{1'bx}}, 8'b00100001} : if (Z == 1) begin reset_pc <= 2'b10; end
-				   else begin reset_pc <= 2'b11; end
+	  {`S4}, 8'b00100001} : if (Z == 1) begin reset_pc <= 2'b10; end
+				   else begin reset_pc <= 2'b11; end 
+				   nextstate = `S1;
 	  //BNE
-	  {{4{1'bx}}, 8'b00100010} : if (Z == 0) begin reset_pc <= 2'b10; end
-				   else begin reset_pc <= 2'b11; end
+	  {`S4}, 8'b00100010} : if (Z == 0) begin reset_pc <= 2'b10; end
+				   else begin reset_pc <= 2'b11; end 
+				   nextstate = `S1;
 	  //BLE
-	  {{4{1'bx}}, 8'b00100100} : if (N != V | Z == 1) begin reset_pc <= 2'b10; end
-				   else begin reset_pc <= 2'b11; end
+	  {`S4}, 8'b00100100} : if (N != V | Z == 1) begin reset_pc <= 2'b10; end
+				   else begin reset_pc <= 2'b11; end 
+				   nextstate = `S1;
 
 	  //Goes to reset state if reset is pressed
 	  {`S0, 8'bxxxxxxxx} : {nextstate, write, loada, loadb, loadc, loads, asel, vsel, only_shift, nsel, load_pc, reset_pc, load_addr, addr_sel, mem_cmd, load_ir} <= {`S1, 17'b0000000000000_0001,`MREAD, 1'b0};
