@@ -20,10 +20,11 @@ module cpu(clk, reset, in, out, mem_addr, mem_cmd);
    output [8:0] mem_addr;
    output [1:0] mem_cmd;
    wire [15:0] instruction, read_data, sximm5, sximm8;
-   wire [8:0] PC, next_pc, data_address;
+   wire [8:0] PC, data_address;
    wire [2:0] opcode, register, nsel, con;
    wire [1:0] op, ALUop, shift, vsel, reset_pc;
    wire loadb, loada, asel, bsel, write, loads, loadc, only_shift, N, V, Z, load_pc, addr_sel, load_addr, load_ir;
+   reg [1:0] next_pc;
 
    assign read_data = in;
    
@@ -51,7 +52,13 @@ module cpu(clk, reset, in, out, mem_addr, mem_cmd);
     .load_addr(load_addr), .addr_sel(addr_sel), .mem_cmd(mem_cmd), .load_ir(load_ir), .bsel(bsel), .N(N), .V(V), .Z(Z), .con(con));
 
    //Multiplexers that determine next_pc and mem_addr
-   assign next_pc = (reset_pc == 2'b11) ? {9{1'b0}} : {(reset_pc == 2'b00) ? {PC + 1} : {PC + 1 + sximm8}};
+   always@(*)
+    case (reset_pc)
+	 2'b00: next_pc = {9{1'b0}};
+	 2'b01: next_pc = out;
+	 2'b10: next_pc = PC + 1 + sximm8;
+	 2'b11: next_pc = PC + 1;
+    endcase
    assign mem_addr = addr_sel ? PC : data_address;
    
 endmodule // cpu

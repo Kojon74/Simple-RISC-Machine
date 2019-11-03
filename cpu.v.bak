@@ -51,7 +51,13 @@ module cpu(clk, reset, in, out, mem_addr, mem_cmd);
     .load_addr(load_addr), .addr_sel(addr_sel), .mem_cmd(mem_cmd), .load_ir(load_ir), .bsel(bsel), .N(N), .V(V), .Z(Z), .con(con));
 
    //Multiplexers that determine next_pc and mem_addr
-   assign next_pc = (reset_pc == 2'b11) ? {9{1'b0}} : {(reset_pc == 2'b00) ? {PC + 1} : {PC + 1 + sximm8}};
+   always@(*)
+    case (reset_pc)
+	 2'b00: next_pc = {9{1'b0}};
+	 2'b01: next_pc = out;
+	 2'b10: next_pc = PC + 1 + sximm8;
+	 2'b11: next_pc = PC + 1;
+    endcase
    assign mem_addr = addr_sel ? PC : data_address;
    
 endmodule // cpu
@@ -189,7 +195,7 @@ module CPUstateMachine(reset, opcode, op, vsel, loadb, loada, asel, write, clk, 
 	  //BX
 	  {`S4, 8'b0100xxxx} : {nextstate, write, loada, loadb, loadc, loads, asel, vsel, only_shift, nsel, bsel} <= {`S5, 13'b0010000000100};
 	  {`S5, 8'b0100xxxx} : {nextstate, write, loada, loadb, loadc, loads, asel, vsel, only_shift, nsel, bsel} <= {`S6, 13'b0001110000000};
-	  {`S6, 8'b0100xxxx} : {nextState, reset_pc} <= {`S1, 2'b01};
+	  {`S6, 8'b0100xxxx} : {nextstate, reset_pc} <= {`S1, 2'b01};
 	  
 	  //Return
 	  default : {nextstate, write, loada, loadb, loadc, loads, asel, vsel, only_shift, nsel, load_pc, reset_pc, load_addr, addr_sel, mem_cmd, load_ir} <= {24{1'bx}};
