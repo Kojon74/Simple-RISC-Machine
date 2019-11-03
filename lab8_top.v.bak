@@ -1,26 +1,35 @@
 `define MREAD 2'b01 //MREAD
 `define MWRITE 2'b10 //MWRITE
 
-module lab8_top(KEY, SW, LEDR, HEX0, HEX1, HEX2, HEX3, HEX4, HEX5);
+module lab8_top(KEY, SW, LEDR, HEX0, HEX1, HEX2, HEX3, HEX4, HEX5, CLOCK_50);
    parameter filename = "lab8fig2.txt";
+   input CLOCK_50;
    input [3:0] KEY;
    input [9:0] SW;
    output [9:0] LEDR;
    output [6:0] HEX0, HEX1, HEX2, HEX3, HEX4, HEX5;
    wire [8:0] 	mem_addr;
-   wire [15:0] 	read_data, write_data;
+   wire [15:0] 	read_data, write_data, dout, ir;
    wire [1:0] 	mem_cmd;
+<<<<<<< HEAD
+   wire 	msel, write, halt, LEDload, switch_load;
+=======
    wire 	msel, write;
    wire [15:0] 	dout, ir;
    wire 	LEDload, switch_load;
+>>>>>>> 3999f3ce00a1b4556b2868aacdee05f3a480fcb5
 
-   assign LEDR[9:8] = 2'b00;
+   assign LEDR[9:8] = (halt === 1'b1) ? 2'b01 : 2'b00;
    
    //Instantiating memory
    RAM #(16, 8, filename) MEM (.clk(~KEY[0]), .read_address(mem_addr[7:0]), .write_address(mem_addr[7:0]), .write(write), .din(write_data), .dout(dout));
 
    //Instantiating the cpu
+<<<<<<< HEAD
+   cpu CPU (.clk(~KEY[0]), .reset(~KEY[1]), .in(read_data), .out(write_data), .mem_addr(mem_addr), .mem_cmd(mem_cmd), .halt(halt));
+=======
    cpu CPU (.clk(~KEY[0]), .reset(~KEY[1]), .in(read_data), .out(write_data), .mem_addr(mem_addr), .mem_cmd(mem_cmd));
+>>>>>>> 3999f3ce00a1b4556b2868aacdee05f3a480fcb5
   
    //Instantiating the input_iface 
    input_iface IN(CLOCK_50, SW, ir, LEDR[7:0]);
@@ -45,7 +54,7 @@ module lab8_top(KEY, SW, LEDR, HEX0, HEX1, HEX2, HEX3, HEX4, HEX5);
 
    assign switch_load = (mem_cmd === `MREAD) & (mem_addr === 9'h140);
    
-endmodule // lab7_top
+endmodule // lab8_top
 
 module sseg(in,segs);
    input [3:0] in;
@@ -84,7 +93,11 @@ module input_iface(clk, SW, ir, LEDR);
   wire [15:0] ir_next = sel_sw ? {SW[7:0],ir[7:0]} : {ir[15:8],SW[7:0]};
   vDFF #(16) REG(clk,ir_next,ir);
   assign LEDR = sel_sw ? ir[7:0] : ir[15:8];  
+<<<<<<< HEAD
 endmodule  
+=======
+endmodule
+>>>>>>> 3999f3ce00a1b4556b2868aacdee05f3a480fcb5
 
 module vDFF(clk,D,Q);
   parameter n=1;
@@ -94,5 +107,9 @@ module vDFF(clk,D,Q);
   reg [n-1:0] Q;
   always @(posedge clk)
     Q <= D;
+<<<<<<< HEAD
 endmodule
 
+=======
+endmodule
+>>>>>>> 3999f3ce00a1b4556b2868aacdee05f3a480fcb5
