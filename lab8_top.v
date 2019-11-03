@@ -1,8 +1,8 @@
 `define MREAD 2'b01 //MREAD
 `define MWRITE 2'b10 //MWRITE
 
-module lab7_top(KEY, SW, LEDR, HEX0, HEX1, HEX2, HEX3, HEX4, HEX5);
-   parameter filename = "part3_test.txt";
+module lab8_top(KEY, SW, LEDR, HEX0, HEX1, HEX2, HEX3, HEX4, HEX5);
+   parameter filename = "lab8fig2.txt";
    input [3:0] KEY;
    input [9:0] SW;
    output [9:0] LEDR;
@@ -21,7 +21,10 @@ module lab7_top(KEY, SW, LEDR, HEX0, HEX1, HEX2, HEX3, HEX4, HEX5);
 
    //Instantiating the cpu
    cpu CPU (.clk(~KEY[0]), .reset(~KEY[1]), .in(read_data), .out(write_data), .N(), .V(), .Z(), .mem_addr(mem_addr), .mem_cmd(mem_cmd));
-   
+  
+   //Instantiating the input_iface 
+   input_iface IN(CLOCK_50, SW, ir, LEDR[7:0]);
+
    //Tri state buffer for output
    assign read_data = (msel & `MREAD === mem_cmd) ? dout : {16{1'bz}};
    
@@ -71,3 +74,14 @@ module sseg(in,segs);
       endcase // case (in)
    end 
 endmodule
+
+module input_iface(clk, SW, ir, LEDR);
+  input clk;
+  input [9:0] SW;
+  output [15:0] ir;
+  output [7:0] LEDR;
+  wire sel_sw = SW[9];  
+  wire [15:0] ir_next = sel_sw ? {SW[7:0],ir[7:0]} : {ir[15:8],SW[7:0]};
+  vDFF #(16) REG(clk,ir_next,ir);
+  assign LEDR = sel_sw ? ir[7:0] : ir[15:8];  
+endmodule  
