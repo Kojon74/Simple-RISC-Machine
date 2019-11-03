@@ -106,20 +106,28 @@ module CPUstateMachine(reset, opcode, op, vsel, loadb, loada, asel, write, clk, 
       else begin
         casex ({state, opcode, op, con})
 	  //BLT
-	  {{4{1'bx}}, 8'b00100011} : if (N != V) begin reset_pc <= 2'b10; end
+	  {{4{1'bx}}, 8'b00100011} : begin load_pc <= 1'b1;
+				   if (N != V) begin reset_pc <= 2'b10; end
 				   else begin reset_pc <= 2'b11; end
+			 	   end
 	  //B
-	  {{4{1'bx}}, 8'b00100000} : reset_pc <= 2'b10;
+	  {{4{1'bx}}, 8'b00100000} : begin reset_pc <= 2'b10; load_pc <= 1'b1; end
 
 	  //BEQ
-	  {{4{1'bx}}, 8'b00100001} : if (Z == 1) begin reset_pc <= 2'b10; end
+	  {{4{1'bx}}, 8'b00100001} : begin load_pc <= 1'b1;
+				   if (Z == 1) begin reset_pc <= 2'b10; end
 				   else begin reset_pc <= 2'b11; end
+				   end
 	  //BNE
-	  {{4{1'bx}}, 8'b00100010} : if (Z == 0) begin reset_pc <= 2'b10; end
+	  {{4{1'bx}}, 8'b00100010} : begin load_pc <= 1'b1;
+				   if (Z == 0) begin reset_pc <= 2'b10; end
 				   else begin reset_pc <= 2'b11; end
+				   end
 	  //BLE
-	  {{4{1'bx}}, 8'b00100100} : if (N != V | Z == 1) begin reset_pc <= 2'b10; end
+	  {{4{1'bx}}, 8'b00100100} : begin load_pc <= 1'b1;
+				   if (N != V | Z == 1) begin reset_pc <= 2'b10; end
 				   else begin reset_pc <= 2'b11; end
+				   end
 
 	  //Goes to reset state if reset is pressed
 	  {`S0, 8'bxxxxxxxx} : {nextstate, write, loada, loadb, loadc, loads, asel, vsel, only_shift, nsel, load_pc, reset_pc, load_addr, addr_sel, mem_cmd, load_ir} <= {`S1, 17'b0000000000000_0001,`MREAD, 1'b0};
@@ -193,12 +201,12 @@ module CPUstateMachine(reset, opcode, op, vsel, loadb, loada, asel, write, clk, 
 	  
 
 	  //BL
-	  {`S4, 8'b01011xxx} : {nextstate, write, vsel, nsel, reset_pc} <= {`S1, 8'b11000110};
+	  {`S4, 8'b01011xxx} : {nextstate, write, vsel, nsel, reset_pc, load_pc} <= {`S1, 8'b11000111};
 
 	  //BX
 	  {`S4, 8'b0100xxxx} : {nextstate, write, loada, loadb, loadc, loads, asel, vsel, only_shift, nsel, bsel} <= {`S5, 13'b0010000000100};
 	  {`S5, 8'b0100xxxx} : {nextstate, write, loada, loadb, loadc, loads, asel, vsel, only_shift, nsel, bsel} <= {`S6, 13'b0001110000000};
-	  {`S6, 8'b0100xxxx} : {nextstate, reset_pc} <= {`S1, 2'b01};
+	  {`S6, 8'b0100xxxx} : {nextstate, reset_pc, load_pc} <= {`S1, 3'b011};
 	  
 	  //Return
 	  default : {nextstate, write, loada, loadb, loadc, loads, asel, vsel, only_shift, nsel, load_pc, reset_pc, load_addr, addr_sel, mem_cmd, load_ir} <= {24{1'bx}};

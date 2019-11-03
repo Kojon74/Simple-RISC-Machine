@@ -71,14 +71,3 @@ module sseg(in,segs);
       endcase // case (in)
    end 
 endmodule
-
-module input_iface(clk, SW, ir, LEDR);
-  input clk;
-  input [9:0] SW;
-  output [15:0] ir;
-  output [7:0] LEDR;
-  wire sel_sw = SW[9];  
-  wire [15:0] ir_next = sel_sw ? {SW[7:0],ir[7:0]} : {ir[15:8],SW[7:0]};
-  vDFF #(16) REG(clk,ir_next,ir);
-  assign LEDR = sel_sw ? ir[7:0] : ir[15:8];  
-endmodule  
