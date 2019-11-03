@@ -46,7 +46,12 @@ module cpu(clk, reset, in, out, mem_addr, mem_cmd);
    CPUstateMachine StateMachine(.clk(clk), .reset(reset), .opcode(opcode), .op(op), .vsel(vsel), .loadb(loadb), .loada(loada), .asel(asel), .write(write), .loadc(loadc), .loads(loads), .nsel(nsel), .only_shift(only_shift), .load_pc(load_pc), .reset_pc(reset_pc), .load_addr(load_addr), .addr_sel(addr_sel), .mem_cmd(mem_cmd), .load_ir(load_ir), .bsel(bsel), .N(N), .V(V), .Z(Z), .con(con));
 
    //Multiplexers that determine next_pc and mem_addr
-   assign next_pc = (reset_pc == 2'b11) ? {9{1'b0}} : {(reset_pc == 2'b00) ? {PC + 1} : {PC + 1 + sximm8}};
+   case (reset_pc)
+	2'b00: next_pc = {9{1'b0}};
+	2'b01: next_pc = out;
+	2'b10: next_pc = PC + 1 + sximm8;
+	2'b11: next_pc = PC + 1;
+   endcase
    assign mem_addr = addr_sel ? PC : data_address;
    
 endmodule // cpu
