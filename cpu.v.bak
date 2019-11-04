@@ -215,9 +215,9 @@ module CPUstateMachine(reset, opcode, op, vsel, loadb, loada, asel, write, clk, 
     {`S4, 8'b01011xxx} : {nextstate, write, vsel, nsel, reset_pc, load_pc} <= {`S1, 9'b110001101};
 
     //BX
-    {`S3, 8'b0100xxxx} : {nextstate, write, loada, loadb, loadc, loads, asel, vsel, only_shift, nsel, bsel} <= {`S5, 13'b0010000000100};
-    {`S4, 8'b0100xxxx} : {nextstate, write, loada, loadb, loadc, loads, asel, vsel, only_shift, nsel, bsel} <= {`S6, 13'b0001110000000};
-    {`S5, 8'b0100xxxx} : {nextstate, reset_pc, load_pc} <= {`S1, 3'b011};
+    {`S4, 8'b0100xxxx} : {nextstate, write, loada, loadb, loadc, loads, asel, vsel, only_shift, nsel, bsel} <= {`S5, 13'b0010000000100};
+    {`S5, 8'b0100xxxx} : {nextstate, write, loada, loadb, loadc, loads, asel, vsel, only_shift, nsel, bsel} <= {`S6, 13'b0001110000000};
+    {`S6, 8'b0100xxxx} : {nextstate, reset_pc, load_pc} <= {`S1, 3'b011};
   
     //Return
     default : {nextstate, write, loada, loadb, loadc, loads, asel, vsel, only_shift, nsel, load_pc, reset_pc, load_addr, addr_sel, mem_cmd, load_ir} <= {24{1'bx}};

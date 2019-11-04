@@ -208,6 +208,9 @@ module CPUstateMachine(reset, opcode, op, vsel, loadb, loada, asel, write, clk, 
                       <= {`S9, 17'b0000000010000_0000, `MWRITE, 1'b0};
     //Load into memory
     {`S9, 8'b100xxxxx} : {nextstate, write, loada, loadb, loadc, loads, asel, vsel, only_shift, nsel, load_pc, reset_pc, load_addr, addr_sel, mem_cmd, load_ir} 
+                      <= {`S10, 17'b0000000000000_0001,`MREAD, 1'b0};
+    //Load into memory
+    {`S10, 8'b100xxxxx} : {nextstate, write, loada, loadb, loadc, loads, asel, vsel, only_shift, nsel, load_pc, reset_pc, load_addr, addr_sel, mem_cmd, load_ir} 
                       <= {`S1, 17'b0000000000000_0001,`MREAD, 1'b0};
   
 

@@ -11,13 +11,13 @@ module RAM(clk,read_address,write_address,write,din,dout);
   output [data_width-1:0] dout;
   reg [data_width-1:0] dout;
 
-  reg [data_width-1:0] mem [2**addr_width-1:0];
+  reg [data_width-1:0] mem [2**addr_width-1:0];  //dpesnt work with quartus
 
   initial $readmemb(filename, mem);
 
   always @ (*) begin
     if (write)
-      mem[write_address] <= din;
-    dout <= mem[read_address];
+      mem[write_address] <= din; 
+    dout <= mem[read_address]; //Set dout using non-blocking assignment so it wont be updated until next clk cycle
   end 
 endmodule
