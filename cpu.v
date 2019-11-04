@@ -121,7 +121,7 @@ module CPUstateMachine(reset, opcode, op, vsel, loadb, loada, asel, write, clk, 
     {`S3, 8'b00100010} : begin nextstate = `S1; if (Z === 0) begin reset_pc <= 2'b10; end else begin reset_pc <= 2'b00; load_pc = 1'b0; end end
 	  
     //BLE
-    {`S3, 8'b00100100} : begin nextstate = `S1; if (N != V | Z == 1) begin reset_pc <= 2'b10; end else begin reset_pc <= 2'b00; load_pc = 1'b0; ende nd
+    {`S3, 8'b00100100} : begin nextstate = `S1; if (N != V | Z == 1) begin reset_pc <= 2'b10; end else begin reset_pc <= 2'b00; load_pc = 1'b0; end end
 
     //Goes to reset state if reset is pressed
     {`S0, 8'bxxxxxxxx} : {nextstate, write, loada, loadb, loadc, loads, asel, vsel, only_shift, nsel, load_pc, reset_pc, load_addr, addr_sel, mem_cmd, load_ir} 
