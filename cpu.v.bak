@@ -130,11 +130,11 @@ module CPUstateMachine(reset, opcode, op, vsel, loadb, loada, asel, write, clk, 
 				   end
 
 	  //Goes to reset state if reset is pressed
-	  {`S0, 8'bxxxxxxxx} : {nextstate, write, loada, loadb, loadc, loads, asel, vsel, only_shift, nsel, load_pc, /*reset_pc,*/ load_addr, addr_sel, mem_cmd, load_ir} <= {`S1, 17'b0000000000000_01,`MREAD, 1'b0};
+	  {`S0, 8'bxxxxxxxx} : {nextstate, write, loada, loadb, loadc, loads, asel, vsel, only_shift, nsel, load_pc, reset_pc, load_addr, addr_sel, mem_cmd, load_ir} <= {`S1, 17'b0000000000000_0001,`MREAD, 1'b0};
 	  //Goes to IF1 state
-	  {`S1, 8'bxxxxxxxx} : {nextstate, write, loada, loadb, loadc, loads, asel, vsel, only_shift, nsel, load_pc, /*reset_pc,*/ load_addr, addr_sel, mem_cmd, load_ir} <= {`S2, 17'b0000000000000_01, `MREAD, 1'b1};
+	  {`S1, 8'bxxxxxxxx} : {nextstate, write, loada, loadb, loadc, loads, asel, vsel, only_shift, nsel, load_pc, reset_pc, load_addr, addr_sel, mem_cmd, load_ir} <= {`S2, 17'b0000000000000_0001, `MREAD, 1'b1};
 	  //Goes to IF2 state
-	  {`S2, 8'bxxxxxxxx} : {nextstate, write, loada, loadb, loadc, loads, asel, vsel, only_shift, nsel, load_pc, /*reset_pc,*/ load_addr, addr_sel, mem_cmd, load_ir} <= {`S3, 20'b0000000000001_01000};
+	  {`S2, 8'bxxxxxxxx} : {nextstate, write, loada, loadb, loadc, loads, asel, vsel, only_shift, nsel, load_pc, reset_pc, load_addr, addr_sel, mem_cmd, load_ir} <= {`S3, 20'b0000000000001_0001000};
 	  //Goes to UpdatePC state
 	  {`S3, 8'bxxxxxxxx} : {nextstate, write, loada, loadb, loadc, loads, asel, vsel, only_shift, nsel, load_pc, reset_pc, load_addr, addr_sel, mem_cmd, load_ir} <= {`S4, 20'b0000000000000_0001000};
 	  //Goes to decoded state

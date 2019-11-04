@@ -57,7 +57,7 @@ module cpu(clk, reset, in, out, mem_addr, mem_cmd, halt);
    always@(*)
     case (reset_pc)
 	 2'b11: next_pc = {9{1'b0}};
-	 2'b01: next_pc = out;
+	 2'b01: next_pc = out; 
 	 2'b10: next_pc = PC + 1 + sximm8;
 	 2'b00: next_pc = PC + 1;
     endcase
