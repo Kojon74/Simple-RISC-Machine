@@ -19,7 +19,7 @@ module lab8_stage2_tb;
     #10; // wait until next falling edge of clock
     KEY[1] = 1'b1; // reset de-asserted, PC still undefined if as in Figure 4
     while (~break) begin
-      @(posedge (DUT.CPU.FSM.state == 4'b0001) or posedge break);  // wait until IF1 
+      @(posedge (DUT.CPU.FSM.p == 20'h10000) or posedge break);  // wait until IF1 
       @(negedge CLOCK_50); // show advance to negative edge of clock
       $display("PC = %h", DUT.CPU.PC); 
     end

@@ -18,6 +18,6 @@ module RAM(clk,read_address,write_address,write,din,dout);
   always @ (*) begin
     if (write)
       mem[write_address] <= din;
-    dout = mem[read_address];
+    dout <= mem[read_address];
   end 
 endmodule

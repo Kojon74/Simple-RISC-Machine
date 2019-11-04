@@ -49,7 +49,7 @@ module cpu(clk, reset, in, out, mem_addr, mem_cmd, halt);
   .register(register), .shift(shift), .sximm5(sximm5), .sximm8(sximm8), .ALUop(ALUop), .con(con));
 
  //Statemachine for the cpu
- CPUstateMachine StateMachine(.clk(clk), .reset(reset), .opcode(opcode), .op(op), .vsel(vsel), .loadb(loadb), .loada(loada), .asel(asel),
+ CPUstateMachine FSM(.clk(clk), .reset(reset), .opcode(opcode), .op(op), .vsel(vsel), .loadb(loadb), .loada(loada), .asel(asel),
   .write(write), .loadc(loadc), .loads(loads), .nsel(nsel), .only_shift(only_shift), .load_pc(load_pc), .reset_pc(reset_pc), 
   .load_addr(load_addr), .addr_sel(addr_sel), .mem_cmd(mem_cmd), .load_ir(load_ir), .bsel(bsel), .N(N), .V(V), .Z(Z), .con(con), .halt(halt));
 
@@ -212,7 +212,7 @@ module CPUstateMachine(reset, opcode, op, vsel, loadb, loada, asel, write, clk, 
   
 
     //BL
-    {`S4, 8'b01011xxx} : {nextstate, write, vsel, nsel, reset_pc, load_pc} <= {`S1, 8'b11000111};
+    {`S4, 8'b01011xxx} : {nextstate, write, vsel, nsel, reset_pc, load_pc} <= {`S1, 9'b110001101};
 
     //BX
     {`S4, 8'b0100xxxx} : {nextstate, write, loada, loadb, loadc, loads, asel, vsel, only_shift, nsel, bsel} <= {`S5, 13'b0010000000100};
