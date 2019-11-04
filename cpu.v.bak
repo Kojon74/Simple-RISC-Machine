@@ -14,125 +14,124 @@
 `define MWRITE 2'b10 //MWRITE
 
 module cpu(clk, reset, in, out, mem_addr, mem_cmd, halt);
-   input clk, reset;
-   input [15:0] in;
-   output [15:0] out;
-   output [8:0] mem_addr;
-   output [1:0] mem_cmd;
-   output halt;
-   wire [15:0] instruction, read_data, sximm5, sximm8;
-   wire [8:0] PC, data_address;
-   wire [2:0] opcode, register, nsel, con;
-   wire [1:0] op, ALUop, shift, vsel, reset_pc;
-   wire loadb, loada, asel, bsel, write, loads, loadc, only_shift, N, V, Z, load_pc, addr_sel, load_addr, load_ir;
-   reg [8:0] next_pc;
+ input clk, reset;
+ input [15:0] in;
+ output [15:0] out;
+ output [8:0] mem_addr;
+ output [1:0] mem_cmd;
+ output halt;
+ wire [15:0] instruction, read_data, sximm5, sximm8;
+ wire [8:0] PC, data_address;
+ wire [2:0] opcode, register, nsel, con;
+ wire [1:0] op, ALUop, shift, vsel, reset_pc;
+ wire loadb, loada, asel, bsel, write, loads, loadc, only_shift, N, V, Z, load_pc, addr_sel, load_addr, load_ir;
+ reg [8:0] next_pc;
 
-   assign read_data = in;
-   assign halt = opcode === 3'b111;
+ assign read_data = in;
    
-   //Creating datapath
-   datapath DP (.clk(clk), .readnum(register), .vsel(vsel), .loada(loada), .loadb(loadb), .shift(shift), .asel(asel), 
-    .bsel(bsel), .ALUop(ALUop), .loadc(loadc), .loads(loads), .writenum(register), .write(write), .N(N), .V(V), .Z(Z), 
-    .datapath_out(out), .sximm5(sximm5), .sximm8(sximm8), .mdata(read_data), .PC(PC[7:0]), .only_shift(only_shift));
-
-   //Creating register that stores instructions
-   register InstructionRegister (.data_in(in), .load(load_ir), .clk(clk), .data_out(instruction));
-
-   //Creating program Counter register
-   register #(9) ProgramCounter(.data_in(next_pc), .load(load_pc), .clk(clk), .data_out(PC));
-
-   //Creating Data Address register
-   register #(9) DataAddress(.data_in(out[8:0]), .load(load_addr), .clk(clk), .data_out(data_address));
    
-   //Creates decoder for instructions to datapath and statemachine
-   instructionDecoder InstructionDecoder (.instruction(instruction), .nsel(nsel), .op(op), .opcode(opcode), 
-    .register(register), .shift(shift), .sximm5(sximm5), .sximm8(sximm8), .ALUop(ALUop), .con(con));
+ //Creating datapath
+ datapath DP (.clk(clk), .readnum(register), .vsel(vsel), .loada(loada), .loadb(loadb), .shift(shift), .asel(asel), 
+  .bsel(bsel), .ALUop(ALUop), .loadc(loadc), .loads(loads), .writenum(register), .write(write), .N(N), .V(V), .Z(Z), 
+  .datapath_out(out), .sximm5(sximm5), .sximm8(sximm8), .mdata(read_data), .PC(PC[7:0]), .only_shift(only_shift));
 
-   //Statemachine for the cpu
-   CPUstateMachine StateMachine(.clk(clk), .reset(reset), .opcode(opcode), .op(op), .vsel(vsel), .loadb(loadb), .loada(loada), .asel(asel),
-    .write(write), .loadc(loadc), .loads(loads), .nsel(nsel), .only_shift(only_shift), .load_pc(load_pc), .reset_pc(reset_pc), 
-    .load_addr(load_addr), .addr_sel(addr_sel), .mem_cmd(mem_cmd), .load_ir(load_ir), .bsel(bsel), .N(N), .V(V), .Z(Z), .con(con));
+ //Creating register that stores instructions
+ register InstructionRegister (.data_in(in), .load(load_ir), .clk(clk), .data_out(instruction));
 
-   //Multiplexers that determine next_pc and mem_addr
-   always@(*)
-    case (reset_pc)
-	 2'b11: next_pc = {9{1'b0}};
-	 2'b01: next_pc = out;
-	 2'b10: next_pc = PC + 1 + sximm8;
-	 2'b00: next_pc = PC + 1;
-    endcase
-   assign mem_addr = addr_sel ? PC : data_address;
+ //Creating program Counter register
+ register #(9) ProgramCounter(.data_in(next_pc), .load(load_pc), .clk(clk), .data_out(PC));
+
+ //Creating Data Address register
+ register #(9) DataAddress(.data_in(out[8:0]), .load(load_addr), .clk(clk), .data_out(data_address));
+   
+ //Creates decoder for instructions to datapath and statemachine
+ instructionDecoder InstructionDecoder (.instruction(instruction), .nsel(nsel), .op(op), .opcode(opcode), 
+  .register(register), .shift(shift), .sximm5(sximm5), .sximm8(sximm8), .ALUop(ALUop), .con(con));
+
+ //Statemachine for the cpu
+ CPUstateMachine StateMachine(.clk(clk), .reset(reset), .opcode(opcode), .op(op), .vsel(vsel), .loadb(loadb), .loada(loada), .asel(asel),
+  .write(write), .loadc(loadc), .loads(loads), .nsel(nsel), .only_shift(only_shift), .load_pc(load_pc), .reset_pc(reset_pc), 
+  .load_addr(load_addr), .addr_sel(addr_sel), .mem_cmd(mem_cmd), .load_ir(load_ir), .bsel(bsel), .N(N), .V(V), .Z(Z), .con(con), .halt(halt));
+
+ //Multiplexers that determine next_pc and mem_addr
+ always@(*)
+  case (reset_pc)
+   2'b11: next_pc = {9{1'b0}};
+   2'b01: next_pc = out; 
+   2'b10: next_pc = PC /*+ 1'b1*/ + sximm8;
+   2'b00: next_pc = PC + 1'b1;
+  endcase
+ assign mem_addr = addr_sel ? PC : data_address;
    
 endmodule // cpu
 
 module instructionDecoder (instruction, nsel, op, opcode, register, shift, sximm5, sximm8, ALUop, con);
-   input [15:0] instruction;
-   input [2:0] nsel;
-   output [2:0] opcode, register, con;
-   output [1:0] op, shift, ALUop;
-   output [15:0] sximm5, sximm8;
-   wire [2:0] Rd, Rm, Rn;
+ input [15:0] instruction;
+ input [2:0] nsel;
+ output [2:0] opcode, register, con;
+ output [1:0] op, shift, ALUop;
+ output [15:0] sximm5, sximm8;
+ wire [2:0] Rd, Rm, Rn;
 
-   //Assigning the values of instructions to the corresponding wires
-   assign opcode = instruction[15:13];
-   assign op = instruction [12:11];
-   assign ALUop = instruction[12:11];
-   assign Rn = instruction [10:8];
-   assign con = instruction [10:8];
-   assign Rd = instruction [7:5];
-   assign shift = instruction[4:3];
-   assign Rm = instruction[2:0];
-   assign sximm8 = {{8{instruction[7]}}, instruction[7:0]};
-   assign sximm5 = {{11{instruction[4]}}, instruction[4:0]};
+ //Assigning the values of instructions to the corresponding wires
+ assign opcode = instruction[15:13];
+ assign op = instruction [12:11];
+ assign ALUop = instruction[12:11];
+ assign Rn = instruction [10:8];
+ assign con = instruction [10:8];
+ assign Rd = instruction [7:5];
+ assign shift = instruction[4:3];
+ assign Rm = instruction[2:0];
+ assign sximm8 = {{8{instruction[7]}}, instruction[7:0]};
+ assign sximm5 = {{11{instruction[4]}}, instruction[4:0]};
 
-   //Assigning the register that is being interacted with
-   assign register = nsel[2] ? Rm : (nsel[1] ? Rd : (nsel[0] ? Rn : {3{1'bx}}));
+ //Assigning the register that is being interacted with
+ assign register = nsel[2] ? Rm : (nsel[1] ? Rd : (nsel[0] ? Rn : {3{1'bx}}));
    
 endmodule // instructionDecoder
 
-module CPUstateMachine(reset, opcode, op, vsel, loadb, loada, asel, write, clk, loadc, loads, nsel, only_shift, load_pc, reset_pc, load_addr, addr_sel, mem_cmd, load_ir, bsel, N, V, Z, con);
-   input [2:0] opcode, con;
-   input [1:0] op;
-   input reset, clk, N, V, Z;
-   output reg [2:0] nsel;
-   output reg [1:0] vsel, reset_pc, mem_cmd;
-   output reg loadb, loada, asel, bsel, write, loadc, loads, only_shift, load_pc, load_addr, addr_sel, load_ir;
-   wire [3:0] state;
-   reg [3:0] nextstate;
+module CPUstateMachine(reset, opcode, op, vsel, loadb, loada, asel, write, clk, loadc, loads, nsel, only_shift, load_pc, reset_pc, load_addr, addr_sel, mem_cmd, load_ir, bsel, N, V, Z, con, halt);
+ input [2:0] opcode, con;
+ input [1:0] op;
+ input reset, clk, N, V, Z;
+ output reg [2:0] nsel;
+ output reg [1:0] vsel, reset_pc, mem_cmd;
+ output reg loadb, loada, asel, bsel, write, loadc, loads, only_shift, load_pc, load_addr, addr_sel, load_ir, halt;
+ wire [3:0] state;
+ reg [3:0] nextstate;
 
-   //Always block that controls the statemachine
-   always @(posedge clk) begin
-      if (reset) {nextstate, write, loada, loadb, loadc, loads, asel, vsel, only_shift, nsel, load_pc, reset_pc, load_addr, addr_sel, mem_cmd, load_ir} <= {`S0, 20'b0000_0000_0001_11110_000};
-      else begin
-        casex ({state, opcode, op, con})
-	  //BLT
-	  {`S4, 8'b00100011} : begin nextstate = `S1;
-				   if (N != V) begin reset_pc <= 2'b10; end
-				   else begin reset_pc <= 2'b11; end
-			 	   end
+ //Always block that controls the statemachine
+ always @(posedge clk) begin
+  if (reset) {nextstate, write, loada, loadb, loadc, loads, asel, vsel, only_shift, nsel, load_pc, reset_pc, load_addr, addr_sel, mem_cmd, load_ir, halt} <= {`S0, 21'b0000_0000_0001_11110_0000};
+  else begin
+   casex ({state, opcode, op, con})
+    //BLT
+    {`S3, 8'b00100011} : begin nextstate = `S1;
+     if (N !== V) begin reset_pc <= 2'b10; end else begin reset_pc <= 2'b00; load_pc = 1'b0; end end
 	  //B
-	  {`S4, 8'b00100000} : begin reset_pc <= 2'b10; load_pc <= 1'b1; nextstate = `S1; end
+	  {`S3, 8'b00100000} : begin reset_pc <= 2'b10; nextstate = `S1; end
 
 	  //BEQ
-	  {`S4, 8'b00100001} : begin load_pc <= 1'b1; nextstate = `S1;
-				   if (Z == 1) begin reset_pc <= 2'b10; end
-				   else begin reset_pc <= 2'b11; end
-				   end
+	  {`S3, 8'b00100001} : begin nextstate = `S1;
+				   if (Z === 1) begin reset_pc <= 2'b10; end
+				   else begin reset_pc <= 2'b00; load_pc = 1'b0; end
+			 	   end
+
 	  //BNE
-	  {`S4, 8'b00100010} : begin load_pc <= 1'b1; nextstate = `S1;
-				   if (Z == 0) begin reset_pc <= 2'b10; end
-				   else begin reset_pc <= 2'b11; end
-				   end
+	  {`S3, 8'b00100010} : begin nextstate = `S1;
+				   if (Z === 0) begin reset_pc <= 2'b10; end
+				   else begin reset_pc <= 2'b00; load_pc = 1'b0; end
+			 	   end
 	  //BLE
-	  {`S4, 8'b00100100} : begin load_pc <= 1'b1; nextstate = `S1;
+	  {`S3, 8'b00100100} : begin nextstate = `S1;
 				   if (N != V | Z == 1) begin reset_pc <= 2'b10; end
-				   else begin reset_pc <= 2'b11; end
-				   end
+				   else begin reset_pc <= 2'b00; load_pc = 1'b0; end
+			 	   end
 
 	  //Goes to reset state if reset is pressed
 	  {`S0, 8'bxxxxxxxx} : {nextstate, write, loada, loadb, loadc, loads, asel, vsel, only_shift, nsel, load_pc, reset_pc, load_addr, addr_sel, mem_cmd, load_ir} <= {`S1, 17'b0000000000000_0001,`MREAD, 1'b0};
 	  //Goes to IF1 state
-	  {`S1, 8'bxxxxxxxx} : {nextstate, write, loada, loadb, loadc, loads, asel, vsel, only_shift, nsel, load_pc, reset_pc, load_addr, addr_sel, mem_cmd, load_ir} <= {`S2, 17'b0000000000000_0001, `MREAD, 1'b1};
+	  {`S1, 8'bxxxxxxxx} : {nextstate, write, loada, loadb, loadc, loads, asel, vsel, only_shift, nsel, load_pc, /*reset_pc,*/ load_addr, addr_sel, mem_cmd, load_ir} <= {`S2, 15'b0000000000000_01, `MREAD, 1'b1};
 	  //Goes to IF2 state
 	  {`S2, 8'bxxxxxxxx} : {nextstate, write, loada, loadb, loadc, loads, asel, vsel, only_shift, nsel, load_pc, reset_pc, load_addr, addr_sel, mem_cmd, load_ir} <= {`S3, 20'b0000000000001_0001000};
 	  //Goes to UpdatePC state
@@ -140,9 +139,9 @@ module CPUstateMachine(reset, opcode, op, vsel, loadb, loada, asel, write, clk, 
 	  //Goes to decoded state
 
 	  //Goes to halt state
-	  {{4{1'bx}}, 8'b111xxxxx} : {nextstate, write, loada, loadb, loadc, loads, asel, vsel, only_shift, nsel, load_pc, reset_pc, load_addr, addr_sel, mem_cmd, load_ir} <= {`S10, 20'b0000000000000_0000000};
+	  {{4{1'bx}}, 8'b111xxxxx} : {nextstate, write, loada, loadb, loadc, loads, asel, vsel, only_shift, nsel, load_pc, reset_pc, load_addr, addr_sel, mem_cmd, load_ir, halt} <= {`S10, 21'b0000000000000_00000001};
 	  //Stays at halt state
-	  {`S10, 8'bxxxxxxxx} : nextstate <= `S10;
+	  {`S10, 8'bxxxxxxxx} : {nextstate, halt} <= {`S10, 1'b1};
 	  
 	  //Loading register
 	  //Decoded state
