@@ -15,9 +15,9 @@ module RAM(clk,read_address,write_address,write,din,dout);
 
   initial $readmemb(filename, mem);
 
-  always @ (*) begin
+  always @ (posedge clk) begin   
     if (write)
-      mem[write_address] <= din; 
-    dout <= mem[read_address]; //Set dout using non-blocking assignment so it wont be updated until next clk cycle
+      mem[write_address] = din; 
+    dout = mem[read_address]; //Set dout using non-blocking assignment so it wont be updated until next clk cycle
   end 
 endmodule

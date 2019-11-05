@@ -19,7 +19,7 @@ module lab8_top(KEY, SW, LEDR, HEX0, HEX1, HEX2, HEX3, HEX4, HEX5, CLOCK_50);
    RAM #(16, 8, filename) MEM (.clk(CLOCK_50), .read_address(mem_addr[7:0]), .write_address(mem_addr[7:0]), .write(write), .din(write_data), .dout(dout));
 
    //Instantiating the cpu
-   cpu CPU (.clk(CLOCK_50), .reset(~KEY[1]), .in(read_data), .out(write_data), .mem_addr(mem_addr), .mem_cmd(mem_cmd), .halt(halt));
+   cpu CPU (.clk(CLOCK_50), .reset(~KEY[1]), .in(read_data), .out(write_data), .mem_addr(mem_addr), .mem_cmd(mem_cmd), .halt(halt), .intr(~KEY[3]));
 
    //Instantiating the input_iface 
    //input_iface IN(CLOCK_50, SW, ir, LEDR[7:0]);

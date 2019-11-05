@@ -9,12 +9,14 @@
 `define S8 4'b1000 //WriteReg
 `define S9 4'b1001 //Load into memeory
 `define S10 4'b1111 //HaltState
+`define S11 4'b1010
+
 
 `define MREAD 2'b01 //MREAD
 `define MWRITE 2'b10 //MWRITE
 
-module cpu(clk, reset, in, out, mem_addr, mem_cmd, halt);
- input clk, reset;
+module cpu(clk, reset, in, out, mem_addr, mem_cmd, halt, intr);
+ input clk, reset, intr;
  input [15:0] in;
  output [15:0] out;
  output [8:0] mem_addr;
@@ -51,7 +53,7 @@ module cpu(clk, reset, in, out, mem_addr, mem_cmd, halt);
  //Statemachine for the cpu
  CPUstateMachine FSM(.clk(clk), .reset(reset), .opcode(opcode), .op(op), .vsel(vsel), .loadb(loadb), .loada(loada), .asel(asel),
   .write(write), .loadc(loadc), .loads(loads), .nsel(nsel), .only_shift(only_shift), .load_pc(load_pc), .reset_pc(reset_pc), 
-  .load_addr(load_addr), .addr_sel(addr_sel), .mem_cmd(mem_cmd), .load_ir(load_ir), .bsel(bsel), .N(N), .V(V), .Z(Z), .con(con), .halt(halt));
+  .load_addr(load_addr), .addr_sel(addr_sel), .mem_cmd(mem_cmd), .load_ir(load_ir), .bsel(bsel), .N(N), .V(V), .Z(Z), .con(con), .halt(halt), .intr(intr));
 
  //Multiplexers that determine next_pc and mem_addr
  always@(*)
@@ -91,11 +93,11 @@ module instructionDecoder (instruction, nsel, op, opcode, register, shift, sximm
 endmodule // instructionDecoder
 
 module CPUstateMachine(reset, opcode, op, vsel, loadb, loada, asel, write, clk, loadc, loads, nsel, only_shift, load_pc, 
- reset_pc, load_addr, addr_sel, mem_cmd, load_ir, bsel, N, V, Z, con, halt);
+ reset_pc, load_addr, addr_sel, mem_cmd, load_ir, bsel, N, V, Z, con, halt, intr);
 
  input [2:0] opcode, con;
  input [1:0] op;
- input reset, clk, N, V, Z;
+ input reset, clk, N, V, Z, intr;
  output reg [2:0] nsel;
  output reg [1:0] vsel, reset_pc, mem_cmd;
  output reg loadb, loada, asel, bsel, write, loadc, loads, only_shift, load_pc, load_addr, addr_sel, load_ir, halt;
@@ -208,6 +210,9 @@ module CPUstateMachine(reset, opcode, op, vsel, loadb, loada, asel, write, clk, 
                       <= {`S9, 17'b0000000010000_0000, `MWRITE, 1'b0};
     //Load into memory
     {`S9, 8'b100xxxxx} : {nextstate, write, loada, loadb, loadc, loads, asel, vsel, only_shift, nsel, load_pc, reset_pc, load_addr, addr_sel, mem_cmd, load_ir} 
+                      <= {`S11, 17'b0000000000000_0001,`MREAD, 1'b0};
+    //Load into memory
+    {`S11, 8'b100xxxxx} : {nextstate, write, loada, loadb, loadc, loads, asel, vsel, only_shift, nsel, load_pc, reset_pc, load_addr, addr_sel, mem_cmd, load_ir} 
                       <= {`S1, 17'b0000000000000_0001,`MREAD, 1'b0};
   
 

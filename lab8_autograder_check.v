@@ -50,7 +50,7 @@ module lab8_check_tb;
 
     // NOTE: your program counter register output should be called PC and be inside a module with instance name CPU
     // NOTE: if HALT is working, PC won't change after reaching 0xE
-    //if (DUT.CPU.PC !== 9'hF) begin err = 1; $display("FAILED: PC at HALT is incorrect."); $stop; end
+    if (DUT.CPU.PC !== 9'hF) begin err = 1; $display("FAILED: PC at HALT is incorrect."); $stop; end
     if (DUT.CPU.DP.REGFILE.R4 !== 16'h1) begin err = 1; $display("FAILED: R4 incorrect at exit; did MOV R4,#1 not work?"); $stop; end
     if (DUT.CPU.DP.REGFILE.R0 !== 16'h4) begin err = 1; $display("FAILED: R0 incorrect at exit; did LDR R0,[R0] not work?"); $stop; end
 
@@ -62,7 +62,7 @@ module lab8_check_tb;
         $display("        hint: check if your BLT instruction skipped MOV R3, result"); 
       $stop; 
     end
-    if (DUT.MEM.mem[8'h14] !== 16'd850)  begin err = 1; $display("FAILED: mem[0x14] (result) is wrong;"); $stop; end
+    if (DUT.MEM.mem[8'h14] !== 16'd850)  begin err = 1; $display("FAILED: mem[0x14] (result) is wrong, %b", DUT.MEM.mem[8'h14]); $stop; end
 
     if (~err) $display("INTERFACE OK");
     $stop;
